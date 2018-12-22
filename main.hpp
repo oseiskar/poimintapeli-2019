@@ -12,16 +12,16 @@ struct Pelaaja {
   bool poissa = false;
 };
 
-class Lauta {
+template <class T> class Lauta {
 private:
-  std::vector<char> luvut;
+  std::vector<T> luvut;
 
 public:
-  char operator()(int x, int y) const {
+  T operator()(int x, int y) const {
     return luvut[leveys*y + x];
   }
 
-  char& operator()(int x, int y) {
+  T& operator()(int x, int y) {
     return luvut[leveys*y + x];
   }
 
@@ -30,7 +30,7 @@ public:
 
 struct Peli {
   std::vector<Pelaaja> pelaajat;
-  Lauta lauta;
+  Lauta<char> lauta;
   int lukusumma = 0;
 
   Peli(int pelaajia) : pelaajat(pelaajia) {}
