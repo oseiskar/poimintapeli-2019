@@ -15,7 +15,7 @@ const Siirto siirrot[4] = {
 
 // Heuristiikka
 void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float> &cache) {
-  constexpr float vaimennus = 0.9 / 4;
+  constexpr float vaimennus = 0.6 / 4;
 
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
