@@ -2,6 +2,7 @@
 #define MAIN_HPP
 
 #include <vector>
+#include <memory>
 
 // Laudan koko.
 constexpr int leveys = 25, korkeus = 25;
@@ -68,12 +69,21 @@ struct Peli {
     }
   }
 };
+struct Siirto {
+  char merkki;
+  int dx;
+  int dy;
+};
 
-#include <memory>
+constexpr Siirto siirrot[4] = {
+  { 'w', 0, -1 },
+  { 'a', -1, 0 },
+  { 's', 0, 1 },
+  { 'd', 1, 0 }
+};
 
 class Aly {
 public:
-  virtual const char * nimi() const = 0;
   virtual char siirto(const Peli &peli) = 0;
   virtual ~Aly() {}
 };

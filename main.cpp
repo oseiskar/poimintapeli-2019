@@ -3,6 +3,8 @@
 
 #include "main.hpp"
 
+constexpr const char * omaNimi = "aly";
+
 int main() {
   // Alustetaan kaikki pelaajat.
   int pelaajia = 1;
@@ -20,7 +22,7 @@ int main() {
   }
 
   // Tulostetaan oma nimi.
-  std::cout << aly->nimi() << std::endl;
+  std::cout << omaNimi << std::endl;
 
   // Pelataan kaikki kierrokset.
   while (peli.lukusumma > 0) {

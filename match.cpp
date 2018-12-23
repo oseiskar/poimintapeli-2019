@@ -5,11 +5,14 @@
 #include <cmath>
 #include "main.hpp"
 
-#ifndef NAYTA_PELI
-#define NAYTA_PELI 0
+// vastustajat
+std::unique_ptr<Aly> luoGreedy(float parametri);
+
+#ifndef SHOW_MATCH
+#define SHOW_MATCH 0
 #endif
 
-#if NAYTA_PELI
+#if SHOW_MATCH
 #include <unistd.h>
 #endif
 
@@ -64,7 +67,7 @@ void tulosta(const Peli &peli, std::ostream &virta) {
   }
 }
 
-typedef std::function< std::unique_ptr<Aly>(const Peli &) > AlyGeneraattori;
+typedef std::pair< std::string, std::function< std::unique_ptr<Aly>(const Peli &) > > AlyGeneraattori;
 
 std::vector<int> pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   int pelaajia = generaattorit.size();
@@ -72,8 +75,8 @@ std::vector<int> pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   generoiLauta(siemen, peli);
   std::vector< std::unique_ptr<Aly> > alyt;
   for (auto &f : generaattorit) {
-    alyt.emplace_back(f(peli));
-    std::cerr << alyt.back()->nimi() << " ";
+    alyt.emplace_back(f.second(peli));
+    std::cerr << f.first << " ";
   }
   std::cerr << std::endl;
 
@@ -90,7 +93,11 @@ std::vector<int> pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     }
     peli.nollaaRuudut();
 
-#if NAYTA_PELI
+#if SHOW_MATCH
+    std::cerr << "\n";
+    for (int i = 0; i < pelaajia; ++i) {
+      std::cerr << generaattorit[i].first << ": " << peli.pelaajat[i].pisteet << "\n";
+    }
     std::cerr << "-------------------------\n";
     tulosta(peli, std::cerr);
     std::cerr.flush();
@@ -117,9 +124,19 @@ int omaPisteEro(std::vector<int> pisteet) {
 }
 
 int main() {
-  AlyGeneraattori oma = [](const Peli &peli){ return teeAly(peli); };
-  std::vector< AlyGeneraattori > vastustajat = {
+  AlyGeneraattori oma = {
+    "oma",
     [](const Peli &peli){ return teeAly(peli); }
+  };
+  std::vector< AlyGeneraattori > vastustajat = {
+    {
+      "greedy06",
+      [](const Peli &peli){ return luoGreedy(0.6); }
+    },
+    {
+      "greedy09",
+      [](const Peli &peli){ return luoGreedy(0.9); }
+    }
   };
 
   int siemen = 0;

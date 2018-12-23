@@ -1,11 +1,8 @@
-#include "main.hpp"
-//#include <iostream>
+#include "../main.hpp"
 
 namespace {
 // Heuristiikka
-void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float> &cache) {
-  constexpr float vaimennus = 0.6 / 4;
-
+void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float> &cache, float vaimennus) {
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
       cache(x,y) = (float)luvut(x,y);
@@ -45,54 +42,30 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
   kentta = cache;
 }
 
-float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, int maxSyvyys) {
-  const char vanha = luvut(x,y);
-  constexpr float heuristiikkapaino = 0.01;
-  constexpr float diskonttauspaino = 0.01;
-
-  float arvo = 0.0;
-  if (maxSyvyys == 0) {
-    arvo = heuristiikka(x,y) * heuristiikkapaino;
-  }
-  else {
-    luvut(x,y) = 0;
-    for (const auto &siirto : siirrot) {
-      arvo = std::max(arvo, haeArvo(
-        ((x + siirto.dx) + leveys) % leveys,
-        ((y + siirto.dy) + korkeus) % korkeus,
-        luvut, heuristiikka, maxSyvyys-1));
-    }
-    luvut(x,y) = vanha;
-  }
-
-  return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
-}
-
-struct Toteutus : public Aly {
+class Greedy : public Aly {
+private:
   Lauta<float> arvokentta, cache;
   Lauta<char> hakuCache;
+  float vaimennus;
 
-  Toteutus() {}
-  ~Toteutus() {}
+public:
+  Greedy(float vaimennus) : vaimennus(vaimennus) {}
+  ~Greedy() {}
 
   char siirto(const Peli &peli) final {
-    laskeArvokentta(peli.lauta, arvokentta, cache);
+    laskeArvokentta(peli.lauta, arvokentta, cache, vaimennus);
 
     const int omaX = peli.pelaajat[0].x;
     const int omaY = peli.pelaajat[0].y;
 
     char omaSiirto;
     float parasArvo = -1.0;
-    constexpr int MAX_SYVYYS = 8;
     hakuCache = peli.lauta;
 
     for (const auto &siirto : siirrot) {
-      const float arvo = haeArvo(
+      const float arvo = arvokentta(
         ((omaX + siirto.dx) + leveys) % leveys,
-        ((omaY + siirto.dy) + korkeus) % korkeus,
-        hakuCache, arvokentta, MAX_SYVYYS);
-
-      //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
+        ((omaY + siirto.dy) + korkeus) % korkeus);
 
       if (arvo > parasArvo) {
         parasArvo = arvo;
@@ -104,6 +77,6 @@ struct Toteutus : public Aly {
 };
 }
 
-std::unique_ptr<Aly> teeAly(const Peli &peli) {
-  return std::unique_ptr<Aly>(new Toteutus());
+std::unique_ptr<Aly> luoGreedy(float parametri = 0.6) {
+  return std::unique_ptr<Aly>(new Greedy(parametri / 4));
 }
