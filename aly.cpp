@@ -1,6 +1,7 @@
 #include "main.hpp"
 //#include <iostream>
 
+namespace {
 struct Siirto {
   char merkki;
   int dx;
@@ -80,14 +81,18 @@ float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka
   return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
 }
 
-struct Aly::Toteutus {
+struct Toteutus : public Aly {
   Lauta<float> arvokentta, cache;
   Lauta<char> hakuCache;
 
-  Toteutus() {
+  Toteutus() {}
+  ~Toteutus() {}
+
+  const char * nimi() const final {
+    return "aly";
   }
 
-  char siirto(const Peli &peli) {
+  char siirto(const Peli &peli) final {
     laskeArvokentta(peli.lauta, arvokentta, cache);
 
     const int omaX = peli.pelaajat[0].x;
@@ -114,14 +119,8 @@ struct Aly::Toteutus {
     return omaSiirto;
   }
 };
-
-Aly::Aly(const Peli &peli) : toteutus(new Toteutus()) {}
-Aly::~Aly() {}
-
-char Aly::siirto(const Peli &peli) {
-  return toteutus->siirto(peli);
 }
 
-const char * Aly::nimi() const {
-  return "aly";
+std::unique_ptr<Aly> teeAly(const Peli &peli) {
+  return std::unique_ptr<Aly>(new Toteutus());
 }

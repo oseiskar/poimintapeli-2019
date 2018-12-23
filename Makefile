@@ -12,7 +12,7 @@ lib/%.o : %.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@
 
 clean:
-	rm -f *.o vastustajat/*.o bin/*
+	rm -f *.o lib/*.o bin/*
 
 setup:
 	mkdir -p bin lib

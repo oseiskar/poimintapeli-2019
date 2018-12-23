@@ -8,7 +8,7 @@ int main() {
   int pelaajia = 1;
   std::cin >> pelaajia;
   Peli peli(pelaajia);
-  Aly aly(peli);
+  std::unique_ptr<Aly> aly(teeAly(peli));
 
   // Luetaan pelilauta ja lasketaan sen summa.
   for (int y = 0; y < korkeus; ++y) {
@@ -20,11 +20,11 @@ int main() {
   }
 
   // Tulostetaan oma nimi.
-  std::cout << aly.nimi() << std::endl;
+  std::cout << aly->nimi() << std::endl;
 
   // Pelataan kaikki kierrokset.
   while (peli.lukusumma > 0) {
-    char oma = aly.siirto(peli);
+    char oma = aly->siirto(peli);
     std::cout << oma << std::endl;
 
     // Luetaan vastustajien liikkeet.

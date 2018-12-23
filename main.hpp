@@ -73,14 +73,11 @@ struct Peli {
 
 class Aly {
 public:
-  Aly(const Peli &);
-  ~Aly();
-
-  const char * nimi() const;
-  char siirto(const Peli &peli);
-private:
-  struct Toteutus;
-  std::unique_ptr<Toteutus> toteutus;
+  virtual const char * nimi() const = 0;
+  virtual char siirto(const Peli &peli) = 0;
+  virtual ~Aly() {}
 };
+
+std::unique_ptr<Aly> teeAly(const Peli &peli);
 
 #endif
