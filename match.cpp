@@ -3,10 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include "main.hpp"
-
-// vastustajat
-std::unique_ptr<Aly> luoGreedy(float parametri);
 
 #ifndef SHOW_MATCH
 #define SHOW_MATCH 0
@@ -69,7 +67,15 @@ void tulosta(const Peli &peli, std::ostream &virta) {
 
 typedef std::pair< std::string, std::function< std::unique_ptr<Aly>(const Peli &) > > AlyGeneraattori;
 
-std::vector<int> pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
+int omaPisteEro(std::vector<int> pisteet) {
+  int parasVastustaja = 0;
+  for (std::size_t i = 1; i < pisteet.size(); ++i)
+    parasVastustaja = std::max(parasVastustaja, pisteet[i]);
+
+  return pisteet[0] - parasVastustaja;
+}
+
+int pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   int pelaajia = generaattorit.size();
   Peli peli(pelaajia);
   generoiLauta(siemen, peli);
@@ -108,20 +114,23 @@ std::vector<int> pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   std::vector<int> pisteet;
   for (const auto &pelaaja : peli.pelaajat) {
     pisteet.push_back(pelaaja.pisteet);
+#if !SHOW_MATCH
     std::cerr << pelaaja.pisteet << ' ';
+#endif
   }
-  std::cerr << std::endl;
 
-  return pisteet;
+  int pisteEro = omaPisteEro(pisteet);
+  std::cerr << "tulos: " << pisteEro << std::endl;
+#if SHOW_MATCH
+  usleep(2000000);
+#endif
+
+  return pisteEro;
 }
 
-int omaPisteEro(std::vector<int> pisteet) {
-  int parasVastustaja = 0;
-  for (std::size_t i = 1; i < pisteet.size(); ++i)
-    parasVastustaja = std::max(parasVastustaja, pisteet[i]);
-
-  return pisteet[0] - parasVastustaja;
-}
+// vastustajat
+std::unique_ptr<Aly> luoGreedy(float parametri);
+std::unique_ptr<Aly> luoAly(int maxSyvyys);
 
 int main() {
   AlyGeneraattori oma = {
@@ -136,23 +145,40 @@ int main() {
     {
       "greedy09",
       [](const Peli &peli){ return luoGreedy(0.9); }
+    },
+    {
+      "aly7",
+      [](const Peli &peli){ return luoAly(7); }
+    },
+    {
+      "aly5",
+      [](const Peli &peli){ return luoAly(5); }
+    },
+    {
+      "aly3",
+      [](const Peli &peli){ return luoAly(3); }
     }
   };
 
-  int siemen = 0;
+  int siemen0 = time(0);
+  std::cout << "siemen: " << siemen0 << std::endl;
 
-  // kaksintaistelut
-  for (auto &vastustaja : vastustajat) {
-    int pisteEro = omaPisteEro(pelaa(siemen, { oma, vastustaja }));
-    std::cout << pisteEro << std::endl;
-  }
+  for (int kierros = 0; kierros < 3; ++kierros) {
+    int siemen = siemen0 + kierros;
+    std::cout << "====== kierros " << (kierros+1) << " ======= " << std::endl;
 
-  if (vastustajat.size() > 1) {
-    // kaikki vastaan kaikki
-    std::vector< AlyGeneraattori > kaikki;
-    kaikki.push_back(oma);
-    kaikki.insert(kaikki.end(), vastustajat.begin(), vastustajat.end());
-    int pisteEro = omaPisteEro(pelaa(siemen, kaikki));
-    std::cout << pisteEro << std::endl;
+    // kaksintaistelut
+    constexpr std::size_t start = 2;
+    for (std::size_t i = start; i < vastustajat.size(); ++i) {
+      pelaa(siemen, { oma, vastustajat[i] });
+    }
+
+    if (vastustajat.size() > 1) {
+      // kaikki vastaan kaikki
+      std::vector< AlyGeneraattori > kaikki;
+      kaikki.push_back(oma);
+      kaikki.insert(kaikki.end(), vastustajat.begin(), vastustajat.end());
+      pelaa(siemen, kaikki);
+    }
   }
 }
