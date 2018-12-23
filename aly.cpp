@@ -1,4 +1,5 @@
 #include "main.hpp"
+//#include <iostream>
 
 struct Siirto {
   char merkki;
@@ -56,8 +57,32 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
   kentta = cache;
 }
 
+float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, int maxSyvyys) {
+  const char vanha = luvut(x,y);
+  constexpr float heuristiikkapaino = 0.01;
+  constexpr float diskonttauspaino = 0.01;
+
+  float arvo = 0.0;
+  if (maxSyvyys == 0) {
+    arvo = heuristiikka(x,y) * heuristiikkapaino;
+  }
+  else {
+    luvut(x,y) = 0;
+    for (const auto &siirto : siirrot) {
+      arvo = std::max(arvo, haeArvo(
+        ((x + siirto.dx) + leveys) % leveys,
+        ((y + siirto.dy) + korkeus) % korkeus,
+        luvut, heuristiikka, maxSyvyys-1));
+    }
+    luvut(x,y) = vanha;
+  }
+
+  return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
+}
+
 struct Aly::Toteutus {
   Lauta<float> arvokentta, cache;
+  Lauta<char> hakuCache;
 
   Toteutus() {
   }
@@ -70,11 +95,16 @@ struct Aly::Toteutus {
 
     char omaSiirto;
     float parasArvo = -1.0;
+    constexpr int MAX_SYVYYS = 8;
+    hakuCache = peli.lauta;
 
     for (const auto &siirto : siirrot) {
-      const float arvo = arvokentta(
+      const float arvo = haeArvo(
         ((omaX + siirto.dx) + leveys) % leveys,
-        ((omaY + siirto.dy) + korkeus) % korkeus);
+        ((omaY + siirto.dy) + korkeus) % korkeus,
+        hakuCache, arvokentta, MAX_SYVYYS);
+
+      //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
 
       if (arvo > parasArvo) {
         parasArvo = arvo;
