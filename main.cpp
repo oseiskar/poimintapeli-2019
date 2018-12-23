@@ -44,4 +44,5 @@ int main() {
 
     peli.nollaaRuudut();
   }
+  return 0;
 }
