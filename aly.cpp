@@ -4,8 +4,6 @@
 namespace {
 // Heuristiikka
 void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float> &cache) {
-  constexpr float vaimennus = 0.6 / 4;
-
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
       cache(x,y) = (float)luvut(x,y);
@@ -21,10 +19,7 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
 
     for (int y = 0; y < korkeus; ++y) {
       for (int x = 0; x < leveys; ++x) {
-        if (lahde(x,y) > 0.0) {
-          kohde(x,y) = lahde(x,y);
-          continue;
-        }
+        float keski = lahde(x,y);
 
         float arvo = 0.0;
         for (const auto &siirto : siirrot) {
@@ -33,9 +28,10 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
             ((y + siirto.dy) + korkeus) % korkeus);
         }
         // ei jää ikuiseen silmukkaan, jos kaikki nollaa
-        if (arvo > 0.0) yhtaan = true;
+        if (arvo > 0.0 && keski <= 0.0) yhtaan = true;
+        arvo = (keski * 3.0 + arvo) / 7.0;
 
-        kohde(x,y) = arvo * vaimennus;
+        kohde(x,y) = arvo;
       }
     }
 
@@ -45,9 +41,8 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
   kentta = cache;
 }
 
-float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, int maxSyvyys) {
+float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, float heuristiikkapaino, int maxSyvyys) {
   const char vanha = luvut(x,y);
-  constexpr float heuristiikkapaino = 0.01;
   constexpr float diskonttauspaino = 0.01;
 
   float arvo = 0.0;
@@ -60,7 +55,7 @@ float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka
       arvo = std::max(arvo, haeArvo(
         ((x + siirto.dx) + leveys) % leveys,
         ((y + siirto.dy) + korkeus) % korkeus,
-        luvut, heuristiikka, maxSyvyys-1));
+        luvut, heuristiikka, heuristiikkapaino, maxSyvyys-1));
     }
     luvut(x,y) = vanha;
   }
@@ -72,8 +67,13 @@ struct Toteutus : public Aly {
   Lauta<float> arvokentta, cache;
   Lauta<char> hakuCache;
   const int maxSyvyys;
+  const float heuristiikkapaino;
 
-  Toteutus(int maxSyvyys = 8) : maxSyvyys(maxSyvyys) {}
+  Toteutus(int maxSyvyys = 8, float heuristiikkapaino = 0.2)
+  :
+    maxSyvyys(maxSyvyys),
+    heuristiikkapaino(heuristiikkapaino)
+  {}
   ~Toteutus() {}
 
   char siirto(const Peli &peli) final {
@@ -90,7 +90,7 @@ struct Toteutus : public Aly {
       const float arvo = haeArvo(
         ((omaX + siirto.dx) + leveys) % leveys,
         ((omaY + siirto.dy) + korkeus) % korkeus,
-        hakuCache, arvokentta, maxSyvyys);
+        hakuCache, arvokentta, heuristiikkapaino, maxSyvyys);
 
       //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
 
@@ -104,8 +104,8 @@ struct Toteutus : public Aly {
 };
 }
 
-std::unique_ptr<Aly> luoAly(int maxSyvyys) {
-  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys));
+std::unique_ptr<Aly> luoAly(int maxSyvyys, float heuristiikkapaino) {
+  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, heuristiikkapaino));
 }
 
 std::unique_ptr<Aly> teeAly(const Peli &peli) {

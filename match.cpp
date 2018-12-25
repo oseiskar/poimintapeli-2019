@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <map>
 #include "main.hpp"
 
 #ifndef SHOW_MATCH
@@ -67,15 +68,33 @@ void tulosta(const Peli &peli, std::ostream &virta) {
 
 typedef std::pair< std::string, std::function< std::unique_ptr<Aly>(const Peli &) > > AlyGeneraattori;
 
-int omaPisteEro(std::vector<int> pisteet) {
-  int parasVastustaja = 0;
-  for (std::size_t i = 1; i < pisteet.size(); ++i)
-    parasVastustaja = std::max(parasVastustaja, pisteet[i]);
+struct Tulos {
+  int omaPisteEro;
+  int voittaja;
+};
 
-  return pisteet[0] - parasVastustaja;
+Tulos laskeTulos(std::vector<int> pisteet) {
+  int vastustajanParhaatPisteet = 0;
+  int parasVastustaja = 0;
+  for (std::size_t i = 1; i < pisteet.size(); ++i) {
+    if (pisteet[i] > vastustajanParhaatPisteet) {
+      parasVastustaja = i;
+      vastustajanParhaatPisteet = pisteet[i];
+    }
+  }
+
+  Tulos tulos;
+  tulos.omaPisteEro = pisteet[0] - vastustajanParhaatPisteet;
+  if (tulos.omaPisteEro >= 0) {
+    tulos.voittaja = 0;
+  } else {
+    tulos.voittaja = parasVastustaja;
+  }
+
+  return tulos;
 }
 
-int pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
+Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   int pelaajia = generaattorit.size();
   Peli peli(pelaajia);
   generoiLauta(siemen, peli);
@@ -119,18 +138,20 @@ int pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
 #endif
   }
 
-  int pisteEro = omaPisteEro(pisteet);
-  std::cerr << "tulos: " << pisteEro << std::endl;
+  const Tulos tulos = laskeTulos(pisteet);
+  std::cerr
+    << "voittaja: " << generaattorit[tulos.voittaja].first
+    << ", oma piste-ero: " << tulos.omaPisteEro << std::endl;
 #if SHOW_MATCH
   usleep(2000000);
 #endif
 
-  return pisteEro;
+  return tulos;
 }
 
 // vastustajat
 std::unique_ptr<Aly> luoGreedy(float parametri);
-std::unique_ptr<Aly> luoAly(int maxSyvyys);
+std::unique_ptr<Aly> luoAly(int maxSyvyys, float heuristiikkapaino);
 
 int main() {
   AlyGeneraattori oma = {
@@ -147,38 +168,67 @@ int main() {
       [](const Peli &peli){ return luoGreedy(0.9); }
     },
     {
-      "aly7",
-      [](const Peli &peli){ return luoAly(7); }
+      "aly0.1",
+      [](const Peli &peli){ return luoAly(8, 0.1); }
+    },
+    {
+      "aly6",
+      [](const Peli &peli){ return luoAly(6, 0.2); }
     },
     {
       "aly5",
-      [](const Peli &peli){ return luoAly(5); }
+      [](const Peli &peli){ return luoAly(5, 0.2); }
     },
     {
-      "aly3",
-      [](const Peli &peli){ return luoAly(3); }
+      "aly7",
+      [](const Peli &peli){ return luoAly(7, 0.2); }
     }
   };
+
+  std::vector< AlyGeneraattori > kaikki;
+  kaikki.push_back(oma);
+  kaikki.insert(kaikki.end(), vastustajat.begin(), vastustajat.end());
 
   int siemen0 = time(0);
   std::cout << "siemen: " << siemen0 << std::endl;
 
-  for (int kierros = 0; kierros < 3; ++kierros) {
+  std::vector<int> kaksintaisteluvoitot;
+  std::map<int, int> monipelaajavoitot;
+  for (std::size_t i = 0; i < vastustajat.size(); ++i) {
+    monipelaajavoitot[i] = 0;
+  }
+
+  constexpr int nKierrokset = 20;
+  for (int kierros = 0; kierros < nKierrokset; ++kierros) {
     int siemen = siemen0 + kierros;
     std::cout << "====== kierros " << (kierros+1) << " ======= " << std::endl;
+    std::vector<int> kierroksenVoitot;
 
     // kaksintaistelut
     constexpr std::size_t start = 2;
     for (std::size_t i = start; i < vastustajat.size(); ++i) {
-      pelaa(siemen, { oma, vastustajat[i] });
+      const Tulos tulos = pelaa(siemen, { oma, vastustajat[i] });
+      kierroksenVoitot.push_back(tulos.voittaja == 0);
     }
 
     if (vastustajat.size() > 1) {
       // kaikki vastaan kaikki
-      std::vector< AlyGeneraattori > kaikki;
-      kaikki.push_back(oma);
-      kaikki.insert(kaikki.end(), vastustajat.begin(), vastustajat.end());
-      pelaa(siemen, kaikki);
+      const Tulos tulos = pelaa(siemen, kaikki);
+      monipelaajavoitot[tulos.voittaja] += 1;
     }
+
+    if (kaksintaisteluvoitot.size() == 0) kaksintaisteluvoitot = kierroksenVoitot;
+    else for (std::size_t i = 0; i < kaksintaisteluvoitot.size(); ++i) {
+      kaksintaisteluvoitot[i] += kierroksenVoitot[i];
+    }
+  }
+
+  std::cout << "--------------" << std::endl;
+  for (int i : kaksintaisteluvoitot)
+    std::cout << i / float(nKierrokset) << std::endl;
+
+  std::cout << "--------------" << std::endl;
+  for (const auto &itr : monipelaajavoitot) {
+    std::cout << kaikki[itr.first].first << ": " << itr.second << std::endl;
   }
 }
