@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <map>
+#include <cassert>
 #include "main.hpp"
 
 #ifndef SHOW_MATCH
@@ -106,7 +107,10 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
   std::cerr << std::endl;
 
   // Pelataan kaikki kierrokset.
-  while (peli.lukusumma > 0) {
+  unsigned pisteettomat = 0;
+  int edellinenLukusumma = peli.lukusumma;
+  constexpr unsigned maxPisteettomat = 100;
+  while (peli.lukusumma > 0 && pisteettomat < maxPisteettomat) {
     for (int i = 0; i < pelaajia; ++i) {
       char siirto = alyt[i]->siirto(peli);
       Pelaaja pelaaja = peli.pelaajat[0];
@@ -118,6 +122,13 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     }
     peli.nollaaRuudut();
 
+    if (peli.lukusumma == edellinenLukusumma) {
+      pisteettomat++;
+    } else {
+      pisteettomat = 0;
+    }
+    edellinenLukusumma = peli.lukusumma;
+
 #if SHOW_MATCH
     std::cerr << "\n";
     for (int i = 0; i < pelaajia; ++i) {
@@ -128,6 +139,10 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     std::cerr.flush();
     usleep(40000);
 #endif
+  }
+
+  if (pisteettomat == maxPisteettomat) {
+    assert(false && "Peli keskeytettiin!");
   }
 
   std::vector<int> pisteet;

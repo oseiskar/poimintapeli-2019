@@ -40,7 +40,7 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
   kentta = cache;
 }
 
-void laskeEtaisyydet(int x0, int y0, Lauta<int> etaisyydet) {
+void laskeEtaisyydet(int x0, int y0, Lauta<int> &etaisyydet) {
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
       etaisyydet(x,y) = -1;
@@ -48,8 +48,7 @@ void laskeEtaisyydet(int x0, int y0, Lauta<int> etaisyydet) {
   }
   etaisyydet(x0, y0) = 0;
   bool yhtaan = true;
-  int etaisyys = 1;
-  while (yhtaan) {
+  for (int etaisyys = 1; yhtaan; etaisyys++) {
     yhtaan = false;
     for (int y = 0; y < korkeus; ++y) {
       for (int x = 0; x < leveys; ++x) {
@@ -142,7 +141,7 @@ struct Toteutus : public Aly {
     constexpr float vastasiirtosakko = 0.9;
     constexpr float heuristiikkapaino = 0.2;
 
-    char omaSiirto;
+    char omaSiirto = '\0';
     float parasArvo = -1.0;
     hakuCache = peli.lauta;
 

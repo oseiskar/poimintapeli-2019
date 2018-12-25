@@ -1,42 +1,20 @@
 #include "main.hpp"
-//#include <iostream>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 namespace {
 // Heuristiikka
-void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float> &cache) {
-  for (int y = 0; y < korkeus; ++y) {
-    for (int x = 0; x < leveys; ++x) {
-      cache(x,y) = (float)luvut(x,y);
+void laskeArvokentta(const std::vector< std::vector<float> > &matriisi, const Lauta<char> luvut, Lauta<float> &kentta) {
+  constexpr int koko = leveys*korkeus;
+  for (int i = 0; i < koko; ++i) {
+    float arvo = 0.0;
+    const auto &rivi = matriisi[i];
+    for (int j = 0; j < koko; ++j) {
+      arvo += rivi[j]*luvut(j);
     }
+    kentta(i) = arvo;
   }
-
-  bool kohdeCache = false;
-  bool yhtaan = true;
-  while (yhtaan) {
-    yhtaan = false;
-    auto &lahde = kohdeCache ? kentta : cache;
-    auto &kohde = kohdeCache ? cache : kentta;
-
-    for (int y = 0; y < korkeus; ++y) {
-      for (int x = 0; x < leveys; ++x) {
-        float keski = lahde(x,y);
-
-        float arvo = 0.0;
-        for (const auto &siirto : siirrot) {
-          arvo += lahde.torus(x + siirto.dx, y + siirto.dy);
-        }
-        // ei jää ikuiseen silmukkaan, jos kaikki nollaa
-        if (arvo > 0.0 && keski <= 0.0) yhtaan = true;
-        arvo = (keski * 3.0 + arvo) / 7.0;
-
-        kohde(x,y) = arvo;
-      }
-    }
-
-    kohdeCache = !kohdeCache;
-  }
-
-  kentta = cache;
 }
 
 float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, float heuristiikkapaino, int maxSyvyys) {
@@ -61,8 +39,79 @@ float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka
   return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
 }
 
+void laskeEtaisyydet(int x0, int y0, Lauta<int> &etaisyydet) {
+  for (int y = 0; y < korkeus; ++y) {
+    for (int x = 0; x < leveys; ++x) {
+      etaisyydet(x,y) = -1;
+    }
+  }
+  etaisyydet(x0, y0) = 0;
+  bool yhtaan = true;
+  for (int etaisyys = 1; yhtaan; etaisyys++) {
+    yhtaan = false;
+    for (int y = 0; y < korkeus; ++y) {
+      for (int x = 0; x < leveys; ++x) {
+        for (const auto &siirto : siirrot) {
+          if (etaisyydet(x,y) < 0 &&
+            etaisyydet.torus(x + siirto.dx, y + siirto.dy) == etaisyys - 1) {
+
+            yhtaan = true;
+            etaisyydet(x,y) = etaisyys;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+void laskeArvomatriisi(std::vector< std::vector<float> > &matriisi) {
+  constexpr int koko = korkeus*leveys;
+  matriisi.clear();
+  matriisi.reserve(koko);
+
+  Lauta<int> etaisyydet;
+  Lauta<float> arvokentta;
+  laskeEtaisyydet(0,0, etaisyydet);
+  constexpr float kerroin = 0.9;
+
+  for (int y = 0; y < korkeus; ++y) {
+    for (int x = 0; x < leveys; ++x) {
+      const int d = etaisyydet(x,y);
+      arvokentta(x,y) = std::pow(kerroin, d);
+    }
+  }
+
+  for (int y0 = 0; y0 < korkeus; ++y0) {
+    for (int x0 = 0; x0 < leveys; ++x0) {
+      matriisi.push_back({});
+      std::vector< float > &rivi = matriisi.back();
+      rivi.reserve(koko);
+
+      for (int y1 = 0; y1 < korkeus; ++y1) {
+        for (int x1 = 0; x1 < leveys; ++x1) {
+          rivi.push_back(arvokentta.torus(x1-x0, y1-y0));
+        }
+      }
+    }
+  }
+}
+
+void tulostaHeuristiikka(const Lauta<float> &heuristiikka, std::ostream &s, int kerroin = 1) {
+    for (int y = 0; y < korkeus; ++y) {
+      for (int x = 0; x < leveys; ++x) {
+        s
+          << std::setw(3) << std::setfill('0')
+          << std::min((int)std::floor(heuristiikka(x,y) * kerroin), 999)
+          << ' ';
+      }
+      s << std::endl;
+    }
+}
+
 struct Toteutus : public Aly {
-  Lauta<float> arvokentta, cache;
+  std::vector< std::vector<float> > arvomatriisi;
+  Lauta<float> arvokentta;
   Lauta<char> hakuCache;
   const int maxSyvyys;
   const float heuristiikkapaino;
@@ -71,11 +120,14 @@ struct Toteutus : public Aly {
   :
     maxSyvyys(maxSyvyys),
     heuristiikkapaino(heuristiikkapaino)
-  {}
+  {
+    laskeArvomatriisi(arvomatriisi);
+  }
   ~Toteutus() {}
 
   char siirto(const Peli &peli) final {
-    laskeArvokentta(peli.lauta, arvokentta, cache);
+    laskeArvokentta(arvomatriisi, peli.lauta, arvokentta);
+    //tulostaHeuristiikka(arvokentta, std::cerr);
 
     const int omaX = peli.pelaajat[0].x;
     const int omaY = peli.pelaajat[0].y;
