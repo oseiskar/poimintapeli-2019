@@ -23,9 +23,7 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
 
         float arvo = 0.0;
         for (const auto &siirto : siirrot) {
-          arvo += lahde(
-            ((x + siirto.dx) + leveys) % leveys,
-            ((y + siirto.dy) + korkeus) % korkeus);
+          arvo += lahde.torus(x + siirto.dx, y + siirto.dy);
         }
         // ei jää ikuiseen silmukkaan, jos kaikki nollaa
         if (arvo > 0.0 && keski <= 0.0) yhtaan = true;

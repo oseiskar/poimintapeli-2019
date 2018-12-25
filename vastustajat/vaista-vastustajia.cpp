@@ -24,9 +24,7 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
 
         float arvo = 0.0;
         for (const auto &siirto : siirrot) {
-          arvo += lahde(
-            ((x + siirto.dx) + leveys) % leveys,
-            ((y + siirto.dy) + korkeus) % korkeus);
+          arvo += lahde.torus(x + siirto.dx, y + siirto.dy);
         }
         // ei jää ikuiseen silmukkaan, jos kaikki nollaa
         if (arvo > 0.0 && keski <= 0.0) yhtaan = true;
@@ -56,9 +54,8 @@ void laskeEtaisyydet(int x0, int y0, Lauta<int> etaisyydet) {
     for (int y = 0; y < korkeus; ++y) {
       for (int x = 0; x < leveys; ++x) {
         for (const auto &siirto : siirrot) {
-          if (etaisyydet(x,y) < 0 && etaisyydet(
-            ((x + siirto.dx) + leveys) % leveys,
-            ((y + siirto.dy) + korkeus) % korkeus) == etaisyys - 1) {
+          if (etaisyydet(x,y) < 0 &&
+            etaisyydet.torus(x + siirto.dx, y + siirto.dy) == etaisyys - 1) {
 
             yhtaan = true;
             etaisyydet(x,y) = etaisyys;

@@ -25,9 +25,7 @@ void laskeArvokentta(const Lauta<char> luvut, Lauta<float> &kentta, Lauta<float>
 
         float arvo = 0.0;
         for (const auto &siirto : siirrot) {
-          arvo += lahde(
-            ((x + siirto.dx) + leveys) % leveys,
-            ((y + siirto.dy) + korkeus) % korkeus);
+          arvo += lahde.torus(x + siirto.dx, y + siirto.dy);
         }
         // ei jää ikuiseen silmukkaan, jos kaikki nollaa
         if (arvo > 0.0) yhtaan = true;
@@ -63,9 +61,7 @@ public:
     hakuCache = peli.lauta;
 
     for (const auto &siirto : siirrot) {
-      const float arvo = arvokentta(
-        ((omaX + siirto.dx) + leveys) % leveys,
-        ((omaY + siirto.dy) + korkeus) % korkeus);
+      const float arvo = arvokentta.torus(omaX + siirto.dx, omaY + siirto.dy);
 
       if (arvo > parasArvo) {
         parasArvo = arvo;

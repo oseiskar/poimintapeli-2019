@@ -19,12 +19,27 @@ private:
   std::vector<T> luvut;
 
 public:
+  // jos meneee yli laidasta, jatka vastakkaisesta laidasta
+  T torus(int x, int y) const {
+    x = (x + leveys*2) % leveys;
+    y = (y + korkeus*2) % korkeus;
+    return luvut[leveys*y + x];
+  }
+
   T operator()(int x, int y) const {
     return luvut[leveys*y + x];
   }
 
   T& operator()(int x, int y) {
     return luvut[leveys*y + x];
+  }
+
+  T& operator()(int i) {
+    return luvut[i];
+  }
+
+  T operator()(int i) const {
+    return luvut[i];
   }
 
   Lauta() : luvut(leveys*korkeus) {}
