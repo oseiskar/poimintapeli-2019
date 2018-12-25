@@ -72,7 +72,7 @@ void laskeArvomatriisi(std::vector< std::vector<float> > &matriisi) {
   Lauta<int> etaisyydet;
   Lauta<float> arvokentta;
   laskeEtaisyydet(0,0, etaisyydet);
-  constexpr float kerroin = 0.9;
+  constexpr float kerroin = 0.7;
 
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
@@ -101,11 +101,15 @@ struct Toteutus : public Aly {
   Lauta<float> arvokentta;
   Lauta<char> hakuCache;
   Lauta<int> etaisyydet;
+  char edellinenSiirto;
+  int vastasiirrot;
   const int maxSyvyys;
   const bool poistaLahi;
 
   Toteutus(int maxSyvyys = 8, bool poistaLahi = true)
   :
+    edellinenSiirto('\0'),
+    vastasiirrot(0),
     maxSyvyys(maxSyvyys),
     poistaLahi(poistaLahi)
   {
@@ -136,20 +140,30 @@ struct Toteutus : public Aly {
     char omaSiirto;
     float parasArvo = -1.0;
     hakuCache = peli.lauta;
+    bool vastasiirto = false;
+    const int maxSyvyysNyt = std::max(0, maxSyvyys - vastasiirrot);
 
     for (const auto &siirto : siirrot) {
       const float arvo = haeArvo(
         ((omaX + siirto.dx) + leveys) % leveys,
         ((omaY + siirto.dy) + korkeus) % korkeus,
-        hakuCache, arvokentta, heuristiikkapaino, maxSyvyys);
+        hakuCache, arvokentta, heuristiikkapaino, maxSyvyysNyt);
 
       //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
 
       if (arvo > parasArvo) {
         parasArvo = arvo;
         omaSiirto = siirto.merkki;
+        vastasiirto = siirto.vastamerkki() == edellinenSiirto;
       }
     }
+
+    if (vastasiirto) vastasiirrot += 2;
+    else {
+      vastasiirrot = std::max(vastasiirrot - 1, 0);
+    }
+
+    edellinenSiirto = omaSiirto;
     return omaSiirto;
   }
 };

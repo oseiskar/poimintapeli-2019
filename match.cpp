@@ -157,15 +157,15 @@ int main() {
   };
   std::vector< AlyGeneraattori > vastustajat = {
     {
+      "vaistaVast6",
+      [](const Peli &peli){ return luoVaistaVastustajia(peli, 6); }
+    },
+    {
       "aly6",
       [](const Peli &peli){ return luoAly(6, true); }
     },
     {
-      "greedy06",
-      [](const Peli &peli){ return luoGreedy(0.6); }
-    },
-    {
-      "vaistaVast6",
+      "vaistaVast8",
       [](const Peli &peli){ return luoVaistaVastustajia(peli, 6); }
     },
     {
@@ -173,12 +173,12 @@ int main() {
       [](const Peli &peli){ return luoEiHuomVast(6, 0.2); }
     },
     {
-      "eiHuomVast8",
-      [](const Peli &peli){ return luoEiHuomVast(8, 0.2); }
-    },
-    {
       "eiPoisto",
       [](const Peli &peli){ return luoAly(8, false); }
+    },
+    {
+      "greedy06",
+      [](const Peli &peli){ return luoGreedy(0.6); }
     }
   };
 

@@ -7,7 +7,8 @@
 
 namespace {
 
-void tulostaHeuristiikka(const Lauta<float> &heuristiikka, std::ostream &s, int kerroin = 1) {
+template <class T>
+void tulostaHeuristiikka(const Lauta<T> &heuristiikka, std::ostream &s, int kerroin = 1) {
     for (int y = 0; y < korkeus; ++y) {
       for (int x = 0; x < leveys; ++x) {
         s
