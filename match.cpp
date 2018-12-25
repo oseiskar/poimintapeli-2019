@@ -117,7 +117,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     std::cerr << "-------------------------\n";
     tulostaPeli(peli, std::cerr);
     std::cerr.flush();
-    usleep(40000);
+    usleep(60000);
 #endif
   }
 
@@ -146,7 +146,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
 
 // vastustajat
 std::unique_ptr<Aly> luoGreedy(float parametri);
-std::unique_ptr<Aly> luoAly(int maxSyvyys, float heuristiikkapaino);
+std::unique_ptr<Aly> luoAly(int maxSyvyys, bool poistaLahi);
 std::unique_ptr<Aly> luoEiHuomVast(int maxSyvyys, float heuristiikkapaino);
 std::unique_ptr<Aly> luoVaistaVastustajia(const Peli &peli, int maxSyvyys);
 
@@ -156,6 +156,10 @@ int main() {
     [](const Peli &peli){ return teeAly(peli); }
   };
   std::vector< AlyGeneraattori > vastustajat = {
+    {
+      "aly6",
+      [](const Peli &peli){ return luoAly(6, true); }
+    },
     {
       "greedy06",
       [](const Peli &peli){ return luoGreedy(0.6); }
@@ -173,12 +177,8 @@ int main() {
       [](const Peli &peli){ return luoEiHuomVast(8, 0.2); }
     },
     {
-      "aly6",
-      [](const Peli &peli){ return luoAly(6, 0.2); }
-    },
-    {
-      "aly5",
-      [](const Peli &peli){ return luoAly(5, 0.2); }
+      "eiPoisto",
+      [](const Peli &peli){ return luoAly(8, false); }
     }
   };
 

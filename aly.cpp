@@ -18,7 +18,7 @@ void laskeArvokentta(const std::vector< std::vector<float> > &matriisi, const La
 
 float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka, float heuristiikkapaino, int maxSyvyys) {
   const char vanha = luvut(x,y);
-  constexpr float diskonttauspaino = 0.01;
+  constexpr float diskonttauspaino = 0.05;
 
   float arvo = 0.0;
   if (maxSyvyys == 0) {
@@ -100,24 +100,38 @@ struct Toteutus : public Aly {
   std::vector< std::vector<float> > arvomatriisi;
   Lauta<float> arvokentta;
   Lauta<char> hakuCache;
+  Lauta<int> etaisyydet;
   const int maxSyvyys;
-  const float heuristiikkapaino;
+  const bool poistaLahi;
 
-  Toteutus(int maxSyvyys = 8, float heuristiikkapaino = 0.2)
+  Toteutus(int maxSyvyys = 8, bool poistaLahi = true)
   :
     maxSyvyys(maxSyvyys),
-    heuristiikkapaino(heuristiikkapaino)
+    poistaLahi(poistaLahi)
   {
     laskeArvomatriisi(arvomatriisi);
   }
   ~Toteutus() {}
 
   char siirto(const Peli &peli) final {
-    laskeArvokentta(arvomatriisi, peli.lauta, arvokentta);
-    //tulostaHeuristiikka(arvokentta, std::cerr);
+    constexpr float heuristiikkapaino = 0.2;
 
     const int omaX = peli.pelaajat[0].x;
     const int omaY = peli.pelaajat[0].y;
+    hakuCache = peli.lauta;
+
+    if (poistaLahi) {
+      laskeEtaisyydet(omaX, omaY, etaisyydet);
+      constexpr int koko = leveys*korkeus;
+      for (int i = 0; i < koko; ++i) {
+        if (etaisyydet(i) < maxSyvyys + 1) {
+          hakuCache(i) = 0;
+        }
+      }
+    }
+
+    laskeArvokentta(arvomatriisi, hakuCache, arvokentta);
+    //tulostaHeuristiikka(arvokentta, std::cerr, 20);
 
     char omaSiirto;
     float parasArvo = -1.0;
@@ -141,8 +155,8 @@ struct Toteutus : public Aly {
 };
 }
 
-std::unique_ptr<Aly> luoAly(int maxSyvyys, float heuristiikkapaino) {
-  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, heuristiikkapaino));
+std::unique_ptr<Aly> luoAly(int maxSyvyys, bool poistaLahi) {
+  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, poistaLahi));
 }
 
 std::unique_ptr<Aly> teeAly(const Peli &peli) {
