@@ -153,6 +153,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
 std::unique_ptr<Aly> luoGreedy(float parametri);
 std::unique_ptr<Aly> luoAly(int maxSyvyys, float heuristiikkapaino);
 std::unique_ptr<Aly> luoEiHuomVast(int maxSyvyys, float heuristiikkapaino);
+std::unique_ptr<Aly> luoVaistaVastustajia(const Peli &peli, int maxSyvyys);
 
 int main() {
   AlyGeneraattori oma = {
@@ -165,11 +166,15 @@ int main() {
       [](const Peli &peli){ return luoGreedy(0.6); }
     },
     {
-      "luoEiHuomVast6",
+      "vaistaVast6",
+      [](const Peli &peli){ return luoVaistaVastustajia(peli, 6); }
+    },
+    {
+      "eiHuomVast6",
       [](const Peli &peli){ return luoEiHuomVast(6, 0.2); }
     },
     {
-      "luoEiHuomVast8",
+      "eiHuomVast8",
       [](const Peli &peli){ return luoEiHuomVast(8, 0.2); }
     },
     {
@@ -202,7 +207,7 @@ int main() {
     std::vector<int> kierroksenVoitot;
 
     // kaksintaistelut
-    constexpr std::size_t start = 2;
+    constexpr std::size_t start = 0;
     for (std::size_t i = start; i < vastustajat.size(); ++i) {
       const Tulos tulos = pelaa(siemen, { oma, vastustajat[i] });
       kierroksenVoitot.push_back(tulos.voittaja == 0);

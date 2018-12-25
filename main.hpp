@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <cassert>
 
 // Laudan koko.
 constexpr int leveys = 25, korkeus = 25;
@@ -73,6 +74,14 @@ struct Siirto {
   char merkki;
   int dx;
   int dy;
+
+  char vastamerkki() const {
+    if (merkki == 'w') return 's';
+    if (merkki == 'a') return 'd';
+    if (merkki == 's') return 'w';
+    if (merkki == 'd') return 'a';
+    assert(false);
+  }
 };
 
 constexpr Siirto siirrot[4] = {

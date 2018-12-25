@@ -1,6 +1,6 @@
 LINK.o = $(LINK.cc)
 CXXFLAGS=-Wall -pedantic -std=c++11
-VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o
+VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o lib/vastustaja-vaista-vastustajia.o
 
 .PHONY: clean setup all match show
 
