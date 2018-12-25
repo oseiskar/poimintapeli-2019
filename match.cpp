@@ -7,6 +7,7 @@
 #include <map>
 #include <cassert>
 #include "main.hpp"
+#include "tulostus.hpp"
 
 #ifndef SHOW_MATCH
 #define SHOW_MATCH 0
@@ -43,27 +44,6 @@ void generoiLauta(int siemen, Peli &peli) {
     for (int x = 0; x < leveys; ++x) {
       peli.alustaRuutu(x,y, lauta(x,y));
     }
-  }
-}
-
-void tulosta(const Peli &peli, std::ostream &virta) {
-  for (int y = 0; y < korkeus; ++y) {
-    for (int x = 0; x < leveys; ++x) {
-      const char arvo = peli.lauta(x,y);
-      if (arvo == 0) {
-        for (std::size_t i = 0; i < peli.pelaajat.size(); ++i) {
-          if (peli.pelaajat[i].x == x && peli.pelaajat[i].y == y) {
-            virta << (char)('A' + i);
-            goto seuraavaRuutu;
-          }
-        }
-        virta << ' ';
-      } else {
-        virta << (char)('0' + arvo);
-      }
-      seuraavaRuutu:;
-    }
-    virta << '\n';
   }
 }
 
@@ -135,7 +115,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
       std::cerr << generaattorit[i].first << ": " << peli.pelaajat[i].pisteet << "\n";
     }
     std::cerr << "-------------------------\n";
-    tulosta(peli, std::cerr);
+    tulostaPeli(peli, std::cerr);
     std::cerr.flush();
     usleep(40000);
 #endif

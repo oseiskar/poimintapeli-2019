@@ -1,7 +1,6 @@
 #include "main.hpp"
 #include <cmath>
-#include <iostream>
-#include <iomanip>
+#include "tulostus.hpp"
 
 namespace {
 // Heuristiikka
@@ -95,18 +94,6 @@ void laskeArvomatriisi(std::vector< std::vector<float> > &matriisi) {
       }
     }
   }
-}
-
-void tulostaHeuristiikka(const Lauta<float> &heuristiikka, std::ostream &s, int kerroin = 1) {
-    for (int y = 0; y < korkeus; ++y) {
-      for (int x = 0; x < leveys; ++x) {
-        s
-          << std::setw(3) << std::setfill('0')
-          << std::min((int)std::floor(heuristiikka(x,y) * kerroin), 999)
-          << ' ';
-      }
-      s << std::endl;
-    }
 }
 
 struct Toteutus : public Aly {
