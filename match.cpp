@@ -195,10 +195,11 @@ int main() {
     monipelaajavoitot[i] = 0;
   }
 
-  constexpr int nKierrokset = 20;
+  constexpr int nKierrokset = 200;
   for (int kierros = 0; kierros < nKierrokset; ++kierros) {
     int siemen = siemen0 + kierros;
-    std::cout << "====== kierros " << (kierros+1) << " ======= " << std::endl;
+    std::cout << "====== kierros " << (kierros+1) << " ======= "
+      << "siemen: " << siemen << std::endl;
     std::vector<int> kierroksenVoitot;
 
     // kaksintaistelut
