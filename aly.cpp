@@ -197,7 +197,7 @@ struct Toteutus : public Aly {
       for (int j=0; j<leveys*korkeus; ++j) {
         if (i == 1) vastustajasakko(j) = 1.0;
         int e = etaisyydet(j);
-        if (huomioiVastustajat && e > 0 && e <= 1) {
+        if (huomioiVastustajat && e == 1) {
           const float sakko = 0.1;
           vastustajasakko(j) *= sakko;
         }
@@ -278,7 +278,7 @@ struct Toteutus : public Aly {
           sakko = 1.0 / (1.0 + visiitit(x,y) - 2);
         }
 
-        const float arvo = haeArvo(x, y, 0, hakuCache, arvokentta,
+        const float arvo = haeArvo(x, y, 1, hakuCache, arvokentta,
           lahinVastustaja, vastustajasakko, maxSyvyys) * sakko;
 
         //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
