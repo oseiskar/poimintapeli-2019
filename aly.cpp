@@ -38,28 +38,19 @@ float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka
   return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
 }
 
+int lyhinEtaisyys(int x0, int y0, int x1, int y1) {
+  int dx = std::abs(x1 - y0);
+  int dy = std::abs(y1 - y0);
+
+  dx = std::min(dx, leveys - dx);
+  dy = std::min(dy, korkeus - dy);
+  return dx + dy;
+}
+
 void laskeEtaisyydet(int x0, int y0, Lauta<int> &etaisyydet) {
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
-      etaisyydet(x,y) = -1;
-    }
-  }
-  etaisyydet(x0, y0) = 0;
-  bool yhtaan = true;
-  for (int etaisyys = 1; yhtaan; etaisyys++) {
-    yhtaan = false;
-    for (int y = 0; y < korkeus; ++y) {
-      for (int x = 0; x < leveys; ++x) {
-        for (const auto &siirto : siirrot) {
-          if (etaisyydet(x,y) < 0 &&
-            etaisyydet.torus(x + siirto.dx, y + siirto.dy) == etaisyys - 1) {
-
-            yhtaan = true;
-            etaisyydet(x,y) = etaisyys;
-            break;
-          }
-        }
-      }
+      etaisyydet(x,y) = lyhinEtaisyys(x0,y0,x,y);
     }
   }
 }
@@ -96,20 +87,79 @@ void laskeArvomatriisi(std::vector< std::vector<float> > &matriisi) {
   }
 }
 
+struct Ruutu {
+  int x;
+  int y;
+  float arvo;
+};
+
+Ruutu haeKohdeTsp(int x, int y, int t, Lauta<char> &kaytetty, const std::vector<Ruutu> &eiTyhjat, const Lauta<int> &lahinVastustaja, int maxSyvyys) {
+  assert(maxSyvyys > 0);
+
+  const Ruutu *paras = nullptr;
+  float parasArvo = -1;
+  float diskonttauspaino = 0.1;
+
+  for (const Ruutu &kohde : eiTyhjat) {
+    if (kaytetty(kohde.x, kohde.y) > 0) continue;
+
+    int etaisyys = lyhinEtaisyys(x, y,  kohde.x, kohde.y);
+    int vastustajanAikaKohteessa = etaisyys - lahinVastustaja(kohde.x, kohde.y) + t;
+    float aikakerroin = 1.0 / (1.0 + t * diskonttauspaino);
+    if (vastustajanAikaKohteessa > 0) {
+      aikakerroin *= 1.0 / (1 + vastustajanAikaKohteessa);
+    }
+    if (vastustajanAikaKohteessa < 0) {
+      aikakerroin *= 1.05;
+    }
+
+    float arvo = kohde.arvo * aikakerroin;
+    if (maxSyvyys > 1) {
+      kaytetty(kohde.x, kohde.y) = 1;
+      arvo += haeKohdeTsp(kohde.x, kohde.y, t+etaisyys, kaytetty, eiTyhjat, lahinVastustaja, maxSyvyys-1).arvo;
+      kaytetty(kohde.x, kohde.y) = 0;
+    }
+
+    if (arvo > parasArvo) {
+      paras = &kohde;
+      parasArvo = arvo;
+    }
+  }
+
+  if (paras == nullptr) {
+    // kaikki kaytetty
+    return { 0, 0, 0 };
+  }
+
+  return { paras->x, paras->y, parasArvo };
+}
+
+bool oikeaSuunta(int deltaKohde, int delta) {
+  if (deltaKohde == 0) return delta == 0;
+  if (deltaKohde < 0) return delta <= 0;
+  return delta >= 0;
+}
+
 struct Toteutus : public Aly {
+  std::vector<Ruutu> eiTyhjat;
+  Lauta<int> lahinVastustaja;
   std::vector< std::vector<float> > arvomatriisi;
   Lauta<float> arvokentta;
   Lauta<char> hakuCache;
   Lauta<int> etaisyydet;
   Lauta<int> visiitit;
+  Lauta<char> kaytetty;
+  Ruutu kohde;
   const int maxSyvyys;
 
   Toteutus(int maxSyvyys = 8)
   :
+    kohde({0,0,0}),
     maxSyvyys(maxSyvyys)
   {
     laskeArvomatriisi(arvomatriisi);
     for (int i=0; i<leveys*korkeus; ++i) visiitit(i) = 0;
+    eiTyhjat.reserve(leveys*korkeus);
   }
   ~Toteutus() {}
 
@@ -122,43 +172,101 @@ struct Toteutus : public Aly {
     visiitit(omaX, omaY) += 1;
     hakuCache = peli.lauta;
 
-    laskeEtaisyydet(omaX, omaY, etaisyydet);
-    constexpr int koko = leveys*korkeus;
-    for (int i = 0; i < koko; ++i) {
-      if (etaisyydet(i) < maxSyvyys + 1) {
-        hakuCache(i) = 0;
+    for (std::size_t i = 1; i < peli.pelaajat.size(); ++i) {
+      const auto &p = peli.pelaajat[i];
+      laskeEtaisyydet(p.x, p.y, etaisyydet);
+      for (int j=0; j<leveys*korkeus; ++j) {
+        if (i == 1 || etaisyydet(j) < lahinVastustaja(j)) {
+          lahinVastustaja(j) = etaisyydet(j);
+        }
       }
     }
 
-    laskeArvokentta(arvomatriisi, hakuCache, arvokentta);
-    //tulostaHeuristiikka(arvokentta, std::cerr, 20);
-
-    char omaSiirto;
-    float parasArvo = -1.0;
-    hakuCache = peli.lauta;
-
-    for (const auto &siirto : siirrot) {
-
-      const int x = ((omaX + siirto.dx) + leveys) % leveys;
-      const int y = ((omaY + siirto.dy) + korkeus) % korkeus;
-
-      float sakko = 1.0;
-      if (visiitit(x,y) > 2) {
-        sakko = 1.0 / (1.0 + visiitit(x,y) - 2);
-      }
-
-      const float arvo = haeArvo(
-        x, y, hakuCache, arvokentta, heuristiikkapaino, maxSyvyys) * sakko;
-
-      //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
-
-      if (arvo > parasArvo) {
-        parasArvo = arvo;
-        omaSiirto = siirto.merkki;
+    eiTyhjat.clear();
+    for (int y = 0; y < korkeus; ++y) {
+      for (int x = 0; x < leveys; ++x) {
+        const char arvo = peli.lauta(x,y);
+        if (arvo > 0) {
+          eiTyhjat.push_back({x, y, (float)arvo});
+        }
+        kaytetty(x,y) = 0;
       }
     }
 
-    return omaSiirto;
+    if (eiTyhjat.size() > 0 && eiTyhjat.size() < 10) {
+      // ei vaihdeta kohdetta turhaan
+      if (kohde.arvo <= 0 || peli.lauta(kohde.x, kohde.y) == 0) {
+        if (eiTyhjat.size() > 1) {
+          constexpr int maxTspSyvyys = 4;
+          kohde = haeKohdeTsp(omaX, omaY, 0, kaytetty, eiTyhjat, lahinVastustaja, maxTspSyvyys);
+        } else {
+          kohde = eiTyhjat[0];
+        }
+      }
+      int dx = kohde.x - omaX;
+      int dy = kohde.y - omaY;
+      if (std::abs(dx) > leveys - std::abs(dx)) dx = -dx;
+      if (std::abs(dy) > korkeus - std::abs(dy)) dy = -dy;
+
+      //std::cerr << kohde.x << " " << kohde.y << " " << dx << " " << dy << std::endl;
+
+      char omaSiirto = '\0';
+      float parasArvo = -1000;
+      for (const auto &siirto : siirrot) {
+        if (oikeaSuunta(dx, siirto.dx) && oikeaSuunta(dy, siirto.dy)) {
+          const int x = omaX + siirto.dx;
+          const int y = omaY + siirto.dy;
+          const float arvo = arvokentta.torus(x,y) - visiitit.torus(x,y);
+          if (arvo > parasArvo) {
+            parasArvo = arvo;
+            omaSiirto = siirto.merkki;
+          }
+        }
+      }
+
+      assert(omaSiirto != '\0');
+      return omaSiirto;
+
+    } else {
+      laskeEtaisyydet(omaX, omaY, etaisyydet);
+      constexpr int koko = leveys*korkeus;
+      for (int i = 0; i < koko; ++i) {
+        if (etaisyydet(i) < maxSyvyys + 1) {
+          hakuCache(i) = 0;
+        }
+      }
+
+      laskeArvokentta(arvomatriisi, hakuCache, arvokentta);
+      //tulostaHeuristiikka(arvokentta, std::cerr, 20);
+
+      char omaSiirto = 0;
+      float parasArvo = -1.0;
+      hakuCache = peli.lauta;
+
+      for (const auto &siirto : siirrot) {
+
+        const int x = ((omaX + siirto.dx) + leveys) % leveys;
+        const int y = ((omaY + siirto.dy) + korkeus) % korkeus;
+
+        float sakko = 1.0;
+        if (visiitit(x,y) > 2) {
+          sakko = 1.0 / (1.0 + visiitit(x,y) - 2);
+        }
+
+        const float arvo = haeArvo(
+          x, y, hakuCache, arvokentta, heuristiikkapaino, maxSyvyys) * sakko;
+
+        //std::cerr << siirto.merkki << " -> " << arvo << std::endl;
+
+        if (arvo > parasArvo) {
+          parasArvo = arvo;
+          omaSiirto = siirto.merkki;
+        }
+      }
+
+      assert(omaSiirto != 0);
+      return omaSiirto;
+    }
   }
 };
 }

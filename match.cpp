@@ -13,6 +13,9 @@
 #define SHOW_MATCH 0
 #endif
 
+//#define SHOW_KYNNYS 30
+#define SHOW_KYNNYS 1000000
+
 #if SHOW_MATCH
 #include <unistd.h>
 #endif
@@ -110,14 +113,16 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     edellinenLukusumma = peli.lukusumma;
 
 #if SHOW_MATCH
-    std::cerr << "\n";
-    for (int i = 0; i < pelaajia; ++i) {
-      std::cerr << generaattorit[i].first << ": " << peli.pelaajat[i].pisteet << "\n";
+    if (peli.lukusumma < SHOW_KYNNYS) {
+      std::cerr << "\n";
+      for (int i = 0; i < pelaajia; ++i) {
+        std::cerr << generaattorit[i].first << ": " << peli.pelaajat[i].pisteet << "\n";
+      }
+      std::cerr << "-------------------------\n";
+      tulostaPeli(peli, std::cerr);
+      std::cerr.flush();
+      usleep(60000);
     }
-    std::cerr << "-------------------------\n";
-    tulostaPeli(peli, std::cerr);
-    std::cerr.flush();
-    usleep(60000);
 #endif
   }
 
