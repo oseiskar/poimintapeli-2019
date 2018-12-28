@@ -5,7 +5,7 @@ EMCCFLAGS= -std=c++11 -fno-exceptions -DNDEBUG -O2 --memory-init-file 0
 JSUGLIFY=uglifyjs -m -c
 #JSUGLIFY=cat
 VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o lib/vastustaja-vaista-vastustajia.o lib/vastustaja-suorat-reitit.o
-HARJOITUSVASTUSTAJA=vastustajat/suorat-reitit.cpp
+HARJOITUSVASTUSTAJA=vastustajat/ei-huom-vast.cpp
 
 .PHONY: clean setup all match show js
 
