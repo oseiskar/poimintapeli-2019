@@ -133,7 +133,7 @@ struct Toteutus : public Aly {
     laskeArvokentta(arvomatriisi, hakuCache, arvokentta);
     //tulostaHeuristiikka(arvokentta, std::cerr, 20);
 
-    char omaSiirto;
+    char omaSiirto = 0;
     float parasArvo = -1.0;
     hakuCache = peli.lauta;
     bool vastasiirto = false;
@@ -159,6 +159,7 @@ struct Toteutus : public Aly {
       vastasiirrot = std::max(vastasiirrot - 1, 0);
     }
 
+    assert(omaSiirto != 0);
     edellinenSiirto = omaSiirto;
     return omaSiirto;
   }

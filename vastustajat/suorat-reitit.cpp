@@ -1,6 +1,6 @@
 #include "../main.hpp"
 #include <cmath>
-#include "../tulostus.hpp"
+//#include "../tulostus.hpp"
 
 namespace {
 void laskeEtaisyydet(int x0, int y0, Lauta<int> &etaisyydet) {
@@ -219,7 +219,7 @@ struct Toteutus : public Aly {
     }
 
     if (eiTyhjat.size() == 0) {
-      std::cerr << "varoitus: kaikki tyhjaa" << std::endl;
+      assert(false && "kaikki tyhjaa");
       return 'w';
     }
 

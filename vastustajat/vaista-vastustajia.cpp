@@ -1,7 +1,7 @@
 #include "../main.hpp"
 #include <cmath>
 //#include <iostream>
-#include "../tulostus.hpp"
+//#include "../tulostus.hpp"
 
 namespace {
 // Heuristiikka

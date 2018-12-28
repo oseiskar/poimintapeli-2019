@@ -96,6 +96,7 @@ struct Siirto {
     if (merkki == 's') return 'w';
     if (merkki == 'd') return 'a';
     assert(false);
+    return '\0';
   }
 };
 

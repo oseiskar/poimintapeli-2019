@@ -56,7 +56,7 @@ public:
     const int omaX = peli.pelaajat[0].x;
     const int omaY = peli.pelaajat[0].y;
 
-    char omaSiirto;
+    char omaSiirto = 0;
     float parasArvo = -1.0;
     hakuCache = peli.lauta;
 
@@ -68,6 +68,7 @@ public:
         omaSiirto = siirto.merkki;
       }
     }
+    assert(omaSiirto != 0);
     return omaSiirto;
   }
 };

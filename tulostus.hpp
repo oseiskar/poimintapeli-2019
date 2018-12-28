@@ -5,8 +5,6 @@
 #include <iostream>
 #include <iomanip>
 
-namespace {
-
 template <class T>
 void tulostaHeuristiikka(const Lauta<T> &heuristiikka, std::ostream &s, int kerroin = 1) {
     for (int y = 0; y < korkeus; ++y) {
@@ -39,8 +37,6 @@ void tulostaPeli(const Peli &peli, std::ostream &virta) {
     }
     virta << '\n';
   }
-}
-
 }
 
 #endif

@@ -27,5 +27,6 @@ myös suoraan komennolla
 
 ### JavaScript-versio
 
- * `make js` tekee tiedostot `bin/main.js` ja `bin/ugly.js`, joita voi käyttää
-   kilpailussa komennolla `node bin/ugly.js` (testattu Node-versiolla 8.11.4)
+`make js` tekee tiedostot `bin/main.js`, jota voi käyttää kilpailussa
+ komennolla `node bin/main.js` (testattu Node-versiolla 8.11.4). Tämä vaatii
+ Emscripten-kääntäjän (testattu versiolla 1.37.35).

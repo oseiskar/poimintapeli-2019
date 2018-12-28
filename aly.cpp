@@ -1,6 +1,6 @@
 #include "main.hpp"
 #include <cmath>
-#include "tulostus.hpp"
+//#include "tulostus.hpp"
 
 namespace {
 struct Ruutu {
@@ -177,9 +177,9 @@ struct Toteutus : public Aly {
   Lauta<char> kaytetty;
   Ruutu kohde;
   const int maxSyvyys;
-  const int tspKynnys;
+  const unsigned tspKynnys;
 
-  Toteutus(int maxSyvyys = 8, int tspKynnys = 10)
+  Toteutus(int maxSyvyys = 8, unsigned tspKynnys = 10)
   :
     kohde({0,0,0}),
     maxSyvyys(maxSyvyys),
@@ -288,7 +288,7 @@ struct Toteutus : public Aly {
 };
 }
 
-std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, int tspKynnys) {
+std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, unsigned tspKynnys) {
   return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, tspKynnys));
 }
 
