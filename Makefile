@@ -1,10 +1,11 @@
 LINK.o = $(LINK.cc)
-CXXFLAGS=-Wall -pedantic -Werror -std=c++11 -O2 -fno-rtti -s
+CXXFLAGS=-Wall -pedantic -Werror -std=c++11 -O2 -fno-rtti -s -DNDEBUG
 EMCCLOCATION=~/opt/emsdk/emsdk_env.sh
 EMCCFLAGS= -std=c++11 -fno-exceptions -DNDEBUG -O2 --memory-init-file 0
 JSUGLIFY=uglifyjs -m -c
 #JSUGLIFY=cat
 VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o lib/vastustaja-vaista-vastustajia.o lib/vastustaja-suorat-reitit.o
+HARJOITUSVASTUSTAJA=vastustajat/suorat-reitit.cpp
 
 .PHONY: clean setup all match show js
 
@@ -18,13 +19,13 @@ lib:
 
 js: bin/main.js
 
-bin/main.js: aly.cpp nodemain.cpp main.hpp tila.hpp main.js
+bin/main.js: aly.cpp nodemain.cpp main.hpp tila.hpp main.js $(HARJOITUSVASTUSTAJA)
 	bash -c "source ${EMCCLOCATION} && \
-		emcc --bind -o bin/aly.js nodemain.cpp aly.cpp ${EMCCFLAGS} && \
+		emcc --bind -o bin/aly.js nodemain.cpp aly.cpp ${HARJOITUSVASTUSTAJA} ${EMCCFLAGS} && \
 		cat bin/aly.js main.js | \
 		${JSUGLIFY} > bin/main.js"
 
-bin/main: lib/aly.o lib/main.o
+bin/main: lib/aly.o lib/main.o $(HARJOITUSVASTUSTAJA)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 lib/vastustaja-%.o : vastustajat/%.cpp
