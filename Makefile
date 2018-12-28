@@ -1,8 +1,9 @@
 LINK.o = $(LINK.cc)
-CXXFLAGS=-Wall -pedantic -std=c++11 -O2
+CXXFLAGS=-Wall -pedantic -std=c++11 -O2 -fno-rtti -s
+EMCCFLAGS= -std=c++11 -fno-exceptions -DNDEBUG -O2 --memory-init-file 0
 VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o lib/vastustaja-vaista-vastustajia.o lib/vastustaja-suorat-reitit.o
 
-.PHONY: clean setup all match show
+.PHONY: clean setup all match show js
 
 default: bin lib bin/main
 
@@ -11,6 +12,15 @@ bin:
 
 lib:
 	mkdir -p lib
+
+js: bin/main.js bin/ugly.js
+
+bin/main.js: aly.cpp nodemain.cpp main.hpp tila.hpp main.js
+	bash -c "source ~/opt/emsdk/emsdk_env.sh && emcc --bind -o bin/aly.js nodemain.cpp aly.cpp ${EMCCFLAGS}"
+	cat bin/aly.js main.js > bin/main.js
+
+bin/ugly.js: bin/main.js
+	uglifyjs -m -c < bin/main.js > bin/ugly.js
 
 bin/main: lib/aly.o lib/main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
