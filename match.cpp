@@ -151,7 +151,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
 
 // vastustajat
 std::unique_ptr<Aly> luoGreedy(float parametri);
-std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, bool huom);
+std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, int tspKynnys);
 std::unique_ptr<Aly> luoEiHuomVast(int maxSyvyys);
 std::unique_ptr<Aly> luoSuoratReitit(const Peli &peli, int maxSyvyys);
 std::unique_ptr<Aly> luoVaistaVastustajia(const Peli &peli, int maxSyvyys);
@@ -171,16 +171,16 @@ int main() {
       [](const Peli &peli){ return luoSuoratReitit(peli, 4); }
     },
     {
-      "alyEiHuom",
-      [](const Peli &peli){ return luoAly(peli, 8, false); }
+      "alyTsp10",
+      [](const Peli &peli){ return luoAly(peli, 8, 10); }
     },
     {
       "vaistaVast8",
       [](const Peli &peli){ return luoVaistaVastustajia(peli, 6); }
     },
     {
-      "aly6",
-      [](const Peli &peli){ return luoAly(peli, 6, true); }
+      "aly6Tsp10",
+      [](const Peli &peli){ return luoAly(peli, 6, 10); }
     },
     {
       "eiHuomVast6",

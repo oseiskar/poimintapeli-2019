@@ -177,13 +177,13 @@ struct Toteutus : public Aly {
   Lauta<char> kaytetty;
   Ruutu kohde;
   const int maxSyvyys;
-  const bool huomioiVastustajat;
+  const int tspKynnys;
 
-  Toteutus(int maxSyvyys = 8, bool huomioiVastustajat = true)
+  Toteutus(int maxSyvyys = 8, int tspKynnys = 10)
   :
     kohde({0,0,0}),
     maxSyvyys(maxSyvyys),
-    huomioiVastustajat(huomioiVastustajat)
+    tspKynnys(tspKynnys)
   {
     laskeArvomatriisi(arvomatriisi);
     eiTyhjat.reserve(leveys*korkeus);
@@ -202,7 +202,7 @@ struct Toteutus : public Aly {
       for (int j=0; j<leveys*korkeus; ++j) {
         if (i == 1) vastustajasakko(j) = 1.0;
         int e = etaisyydet(j);
-        if (huomioiVastustajat && e > 0) {
+        if (e > 0) {
           const float sakko = 1.0 - 0.9 / e;
           vastustajasakko(j) *= sakko;
         }
@@ -224,7 +224,7 @@ struct Toteutus : public Aly {
     }
 
     Ruutu uusiKohde;
-    if (eiTyhjat.size() > 0 && eiTyhjat.size() < 10) {
+    if (eiTyhjat.size() > 0 && eiTyhjat.size() < tspKynnys) {
       if (eiTyhjat.size() > 1) {
         constexpr int maxTspSyvyys = 4;
         uusiKohde = haeKohdeTsp(omaX, omaY, 0, kaytetty, eiTyhjat, lahinVastustaja, vastustajasakko, maxTspSyvyys);
@@ -288,8 +288,8 @@ struct Toteutus : public Aly {
 };
 }
 
-std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, bool huom) {
-  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, huom));
+std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, int tspKynnys) {
+  return std::unique_ptr<Aly>(new Toteutus(maxSyvyys, tspKynnys));
 }
 
 std::unique_ptr<Aly> teeAly(const Peli &peli) {
