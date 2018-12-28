@@ -171,8 +171,8 @@ int main() {
       [](const Peli &peli){ return luoSuoratReitit(peli, 4); }
     },
     {
-      "alyTsp10",
-      [](const Peli &peli){ return luoAly(peli, 8, 10); }
+      "alyTsp5",
+      [](const Peli &peli){ return luoAly(peli, 8, 5); }
     },
     {
       "vaistaVast8",

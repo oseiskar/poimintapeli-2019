@@ -1,5 +1,6 @@
 #include "../main.hpp"
 #include <cmath>
+#include <algorithm>
 //#include "../tulostus.hpp"
 
 namespace {
@@ -38,28 +39,19 @@ float haeArvo(int x, int y, Lauta<char> &luvut, const Lauta<float> &heuristiikka
   return arvo + vanha * (1 + maxSyvyys * diskonttauspaino);
 }
 
+int lyhinEtaisyys(int x0, int y0, int x1, int y1) {
+  int dx = std::abs(x1 - x0);
+  int dy = std::abs(y1 - y0);
+
+  dx = std::min(dx, leveys - dx);
+  dy = std::min(dy, korkeus - dy);
+  return dx + dy;
+}
+
 void laskeEtaisyydet(int x0, int y0, Lauta<int> &etaisyydet) {
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
-      etaisyydet(x,y) = -1;
-    }
-  }
-  etaisyydet(x0, y0) = 0;
-  bool yhtaan = true;
-  for (int etaisyys = 1; yhtaan; etaisyys++) {
-    yhtaan = false;
-    for (int y = 0; y < korkeus; ++y) {
-      for (int x = 0; x < leveys; ++x) {
-        for (const auto &siirto : siirrot) {
-          if (etaisyydet(x,y) < 0 &&
-            etaisyydet.torus(x + siirto.dx, y + siirto.dy) == etaisyys - 1) {
-
-            yhtaan = true;
-            etaisyydet(x,y) = etaisyys;
-            break;
-          }
-        }
-      }
+      etaisyydet(x,y) = lyhinEtaisyys(x0,y0,x,y);
     }
   }
 }
