@@ -4,7 +4,13 @@ VASTUSTAJAT=lib/vastustaja-greedy.o lib/vastustaja-ei-huom-vast.o lib/vastustaja
 
 .PHONY: clean setup all match show
 
-all: bin/main
+default: bin lib bin/main
+
+bin:
+	mkdir -p bin
+
+lib:
+	mkdir -p lib
 
 bin/main: lib/aly.o lib/main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -21,14 +27,11 @@ bin/match: lib/aly.o match.cpp $(VASTUSTAJAT)
 bin/show_match: lib/aly.o match.cpp $(VASTUSTAJAT)
 	$(CXX) -DSHOW_MATCH=1 $(CXXFLAGS) $^ -o $@
 
-match: bin/match
+match: default bin/match
 	./bin/match
 
-show: bin/show_match
+show: default bin/show_match
 	./bin/show_match
 
 clean:
 	rm -f *.o lib/*.o bin/*
-
-setup:
-	mkdir -p bin lib
