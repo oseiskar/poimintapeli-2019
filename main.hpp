@@ -1,5 +1,6 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
+// Yleinen pelimekaniikka on määritetty tässä tiedostossa
 
 #include <vector>
 #include <memory>

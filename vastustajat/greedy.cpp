@@ -1,3 +1,4 @@
+// Yksinkertainen harjoitusvastustaja, joka käyttää pelkästään "potentiaalia"
 #include "../main.hpp"
 
 namespace {

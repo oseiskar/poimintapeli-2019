@@ -1,3 +1,5 @@
+// Harjoitusvastustaja: Vastustajia ei huomioida, a.k.a. osvastus2
+// (arvolla maxSyvyys = 5)
 #include "../main.hpp"
 #include <cmath>
 #include <algorithm>

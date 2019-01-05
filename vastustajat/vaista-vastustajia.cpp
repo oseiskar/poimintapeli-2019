@@ -1,3 +1,4 @@
+// Huono vastustajia jotenkin välttelevä harjoitusvastustaja
 #include "../main.hpp"
 #include <cmath>
 #include <algorithm>

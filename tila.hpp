@@ -3,8 +3,16 @@
 #include "main.hpp"
 #include "nimi.hpp"
 
+/**
+ * Pelin kommunikaatioprotokolla muunnettuna tilakoneeksi. Helpottaa lähinnä
+ * Node.js-komentoriviohjelman tekemistä.
+ */
 class Tilakone {
 public:
+  /**
+   * Lue yksi syöterivi (parametrina) ja palauta oma tulosterivi (tai tyhjä
+   * jos ei tulosteta mitään)
+   */
   std::string kasitteleRivi(std::string rivi) {
     if (!peli) {
       const int pelaajia = std::stoi(rivi);

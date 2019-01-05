@@ -1,3 +1,7 @@
+/*
+ * Ajaa useita otteluita nykyisen version ja koevastustajien välillä ja
+ * näyttää tilastot otteluiden tuloksista.
+ */
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -9,10 +13,12 @@
 #include "main.hpp"
 #include "tulostus.hpp"
 
+// näytetäänkö peli ASCII-grafiikkana vai vaan tulokset?
 #ifndef SHOW_MATCH
 #define SHOW_MATCH 0
 #endif
 
+// näytä peli vasta kun jäljellä oleva pistemäärä laskee alle tämän
 //#define SHOW_KYNNYS 30
 #define SHOW_KYNNYS 1000000
 
@@ -20,8 +26,11 @@
 #include <unistd.h>
 #endif
 
+/**
+ * Generoi pelilauta. Portattu JavaScript-koodista sivulla
+ * https://www.ohjelmointiputka.net/kilpailut/2018-poimintapeli/
+ */
 void generoi(int siemen, Lauta<char> &lauta) {
-  // from https://www.ohjelmointiputka.net/kilpailut/2018-poimintapeli/
   int xorshift32_state = 0xdeadbeef ^ siemen;
   for (int y = 0; y < korkeus; ++y) {
     for (int x = 0; x < leveys; ++x) {
@@ -50,7 +59,10 @@ void generoiLauta(int siemen, Peli &peli) {
   }
 }
 
-typedef std::pair< std::string, std::function< std::unique_ptr<Aly>(const Peli &) > > AlyGeneraattori;
+typedef std::pair<
+    std::string,
+    std::function< std::unique_ptr<Aly>(const Peli &) >
+  > AlyGeneraattori;
 
 struct Tulos {
   int omaPisteEro;
@@ -116,7 +128,8 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
     if (peli.lukusumma < SHOW_KYNNYS) {
       std::cerr << "\n";
       for (int i = 0; i < pelaajia; ++i) {
-        std::cerr << generaattorit[i].first << ": " << peli.pelaajat[i].pisteet << "\n";
+        std::cerr << generaattorit[i].first << ": "
+          << peli.pelaajat[i].pisteet << "\n";
       }
       std::cerr << "-------------------------\n";
       tulostaPeli(peli, std::cerr);
@@ -151,7 +164,7 @@ Tulos pelaa(int siemen, std::vector<AlyGeneraattori> generaattorit) {
 
 // vastustajat
 std::unique_ptr<Aly> luoGreedy(float parametri);
-std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, unsigned tspKynnys);
+std::unique_ptr<Aly> luoAly(const Peli &peli, int maxSyvyys, unsigned tspKyn);
 std::unique_ptr<Aly> luoEiHuomVast(int maxSyvyys);
 std::unique_ptr<Aly> luoSuoratReitit(const Peli &peli, int maxSyvyys);
 std::unique_ptr<Aly> luoVaistaVastustajia(const Peli &peli, int maxSyvyys);
@@ -229,7 +242,8 @@ int main() {
       monipelaajavoitot[tulos.voittaja] += 1;
     }
 
-    if (kaksintaisteluvoitot.size() == 0) kaksintaisteluvoitot = kierroksenVoitot;
+    if (kaksintaisteluvoitot.size() == 0)
+      kaksintaisteluvoitot = kierroksenVoitot;
     else for (std::size_t i = 0; i < kaksintaisteluvoitot.size(); ++i) {
       kaksintaisteluvoitot[i] += kierroksenVoitot[i];
     }

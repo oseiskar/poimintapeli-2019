@@ -3,6 +3,24 @@
 Suomeksi koodattu C++-teköäly Poimintapelikilpailuun.
 Ks. https://www.ohjelmointiputka.net/kilpailut/2018-poimintapeli/
 
+### Toimintaperiaate
+
+**Algoritmi 1**: Laskee kaikki omat siirrot tiettyyn syvyyteen asti ja valitsee
+parhaan siirtosarjan sen mukaan, kuinka paljon pisteitä sen varrella on,
+kuinka aikaisessa vaiheessa ne kerätään, kuinka todennäköisesti jokin vastustaja
+ehtii missäkin kohtaa väliin ja kuinka hyvä "potentiaali" (heuristiikka) sarjan
+viimeisellä ruudulla on.
+
+**Algoritmi 2**: Käytetään loppupelissä, jos jäljellä olevia ei-tyhjiä ruutuja
+on riittävän vähän. Valitaan N-lupaavinta jäljellä olevaa ruutua jä järjestys,
+jossa ne kannattaa yrittää kerätä.
+
+Lisäksi käytetään, kummassakin algoritmissa logiikkaa, joka rajoittaa, milloin
+suunniteltua reittiä voidaan vaihtaa, mikä estää oman pelaajan jäämisen jumiin
+kahden tai useamman ruudun sykliin.
+
+Tarkemmat detaljit voi katsoa tiedostosta `aly.cpp`.
+
 ### Vaatimukset
 
  * g++ (testattu versiolla 6.3)

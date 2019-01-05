@@ -1,3 +1,4 @@
+// Harjoitusvastustaja: Suorat reitit, a.k.a. osvastus1 (arvolla maxSyvyys = 4)
 #include "../main.hpp"
 #include <cmath>
 #include <algorithm>
